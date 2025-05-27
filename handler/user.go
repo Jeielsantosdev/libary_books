@@ -80,7 +80,7 @@ func GetUser(ctx *gin.Context) {
 func UpdateUser(ctx *gin.Context){
 	var user models.Users
 	id := ctx.Param("id")
-	//TODO:arruma o hash de senha ao fazer o update
+	
 	if err := models.DB.First(&user, id).Error; err != nil{
 		ctx.JSON(http.StatusBadRequest, gin.H{"erro":err.Error()})
 		return
@@ -89,7 +89,12 @@ func UpdateUser(ctx *gin.Context){
 		ctx.JSON(http.StatusBadRequest, gin.H{"erro":err.Error()})
 		return
 	}
-
+	hash, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	if err != nil{
+		ctx.JSON(http.StatusInternalServerError,gin.H{"erro":"Erro ao gerar hash da senha"})
+		return
+	}
+	user.Password = string(hash)
 	models.DB.Save(&user)
 	ctx.JSON(200, user)
 }

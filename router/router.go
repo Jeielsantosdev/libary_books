@@ -2,19 +2,27 @@ package router
 
 import (
 	"github.com/Jeielsantosdev/libary_books/handler"
+	"github.com/Jeielsantosdev/libary_books/middleware"
 	"github.com/gin-gonic/gin"
 )
 
 
 func InitializerRouter(router *gin.Engine){
-	users := router.Group("api/users")
+	libary := router.Group("api/")
 	//book := router.Group("api/book")
 
 
-	users.POST("/creteuser",handler.CreateUser)
-	users.GET("/getuser/:id", handler.GetUser)
-	users.GET("/listuser", handler.ListAllUsers)
-	users.PUT("/updateuser/:id", handler.UpdateUser)
-	users.DELETE("/deleteuser/:id", handler.DeleteUser)
+	libary.POST("/creteuser",handler.CreateUser)
+	libary.GET("/getuser/:id", handler.GetUser)
+	libary.GET("/listuser", handler.ListAllUsers)
+	libary.PUT("/updateuser/:id", handler.UpdateUser)
+	libary.DELETE("/deleteuser/:id", handler.DeleteUser)
 
+	libary.POST("/login", handler.Login)
+	protected := router.Group("/api")
+	protected.Use(middlewares.JwtAuthMiddleware())
+	{
+		protected.GET("/protected", handler.Protected)
+	}
+	
 }

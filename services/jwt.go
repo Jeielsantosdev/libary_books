@@ -11,9 +11,9 @@ import (
 
 
 
-func GenerateToken(username string)(string, error){
+func GenerateToken(useremail string)(string, error){
 	claims := jwt.MapClaims{
-		"username":username,
+		"useremail":useremail,
 		"exp": time.Now().Add(time.Hour * 2).Unix(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
