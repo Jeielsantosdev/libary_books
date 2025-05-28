@@ -11,10 +11,10 @@ import (
 
 
 
-func GenerateToken(useremail string)(string, error){
+func GenerateToken(userID uint)(string, error){
 	claims := jwt.MapClaims{
-		"useremail":useremail,
-		"exp": time.Now().Add(time.Hour * 2).Unix(),
+		"user_id":userID,
+		"exp": time.Now().Add(time.Hour * 72).Unix(),
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString(config.SecretKey)

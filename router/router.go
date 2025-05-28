@@ -19,10 +19,17 @@ func InitializerRouter(router *gin.Engine){
 	libary.DELETE("/deleteuser/:id", handler.DeleteUser)
 
 	libary.POST("/login", handler.Login)
-	protected := router.Group("/api")
-	protected.Use(middlewares.JwtAuthMiddleware())
+	protected := router.Group("/api/user")
+	protected.Use(middlewares.AuthMiddleware())
 	{
+		// Rotas protegidas
 		protected.GET("/protected", handler.Protected)
+
+		// Rotas de livros
+		protected.POST("/book/create", handler.CreateBook)
+		
 	}
+
+	
 	
 }

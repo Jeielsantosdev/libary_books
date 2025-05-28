@@ -1,14 +1,17 @@
 package middlewares
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 
-	"github.com/Jeielsantosdev/libary_books/services"
+	"github.com/Jeielsantosdev/libary_books/config"
+	//"github.com/Jeielsantosdev/libary_books/services"
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 )
 
-func JwtAuthMiddleware() gin.HandlerFunc {
+func AuthMiddleware() gin.HandlerFunc {
     return func(ctx *gin.Context) {
         authHeader := ctx.GetHeader("Authorization")
         if authHeader == "" {
@@ -16,25 +19,30 @@ func JwtAuthMiddleware() gin.HandlerFunc {
             return
         }
 
-        tokenParts := strings.Split(authHeader, " ")
-        if len(tokenParts) != 2 || tokenParts[0] != "Bearer" {
-            ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"erro": "Formato de token inválido"})
-            return
-        }
+        tokenString := strings.TrimPrefix(authHeader, "Bearer ")
 
-        claims, err := services.ValidateToken(tokenParts[1])
-        if err != nil {
-            ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"erro": "Token inválido ou expirado"})
-            return
-        }
+		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("método de assinatura inválido")
+			}
+			return config.SecretKey, nil
+		})
+       if err != nil || !token.Valid {
+			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Token inválido"})
+			ctx.Abort()
+			return
+		}
 
-        useremail, ok := claims["useremail"].(string)
-        if !ok {
-            ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"erro": "useremail não encontrado no token"})
-            return
-        }
+		claims, ok := token.Claims.(jwt.MapClaims)
+		if !ok || claims["user_id"] == nil {
+			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Token malformado"})
+			ctx.Abort()
+			return
+		}
 
-        ctx.Set("user", useremail)
-        ctx.Next()
-    }
+		userID := uint(claims["user_id"].(float64))
+		ctx.Set("userID", userID)
+		ctx.Next()
+	}
 }
+    
