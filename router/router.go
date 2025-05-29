@@ -27,6 +27,8 @@ func InitializerRouter(router *gin.Engine){
 
 		// Rotas de livros
 		protected.POST("/book/create", handler.CreateBook)
+		protected.GET("/book/list", handler.ListBooks)
+		protected.GET("/book/:id", handler.Verbook)
 		
 	}
 

@@ -44,3 +44,56 @@ func CreateBook(ctx *gin.Context) {
 
 	utils.RespondJSON(ctx, http.StatusCreated, gin.H{"mensagem": "Livro criado com sucesso", "book": book})
 }
+
+func ListBooks(ctx *gin.Context) {
+    var books []models.Book
+
+    // Retrieve userID from context
+    userID, exists := ctx.Get("userID")
+    if !exists {
+        utils.RespondError(ctx, http.StatusUnauthorized, "Usuário não autenticado")
+        return
+    }
+
+    // Assert userID to uint
+    userIDVal, ok := userID.(uint)
+    if !ok {
+        utils.RespondError(ctx, http.StatusInternalServerError, "Erro interno: userID inválido")
+        return
+    }
+
+    // Query books for the specific user
+    if err := models.DB.Where("user_id = ?", userIDVal).Find(&books).Error; err != nil {
+        log.Printf("Error listing books: %v", err)
+        utils.RespondError(ctx, http.StatusInternalServerError, "Erro ao listar livros")
+        return
+    }
+
+    // Return the list of books as JSON
+    utils.RespondJSON(ctx, http.StatusOK, books)
+}
+
+func Verbook(ctx *gin.Context){
+	var book models.Book
+	
+
+	userID, exists := ctx.Get("userID")
+	if !exists {
+		utils.RespondError(ctx, http.StatusUnauthorized, "Usuário não autenticado")
+		return
+	}
+
+	userIDVal, ok := userID.(uint)
+	if !ok {
+		utils.RespondError(ctx, http.StatusInternalServerError, "Erro interno: userID inválido")
+		return
+	}
+
+	id := ctx.Param("id")
+	if err := models.DB.First(&book, "id = ? AND user_id = ?",id,userIDVal).Error; err != nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "Livro não encontrado"})
+		return
+	}
+	ctx.JSON(200,book)
+
+}
