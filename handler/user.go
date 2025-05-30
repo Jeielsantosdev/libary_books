@@ -2,10 +2,11 @@ package handler
 
 import (
 	"net/http"
-	
+
 	"strconv"
 
 	"github.com/Jeielsantosdev/libary_books/models"
+	"github.com/Jeielsantosdev/libary_books/utils"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -79,9 +80,22 @@ func GetUser(ctx *gin.Context) {
 
 func UpdateUser(ctx *gin.Context){
 	var user models.Users
+
+	userID, exists := ctx.Get("userID")
+	if !exists {
+		utils.RespondError(ctx, http.StatusUnauthorized, "Usuário não autenticado")
+		return
+	}
+
+	userIDVal, ok := userID.(uint)
+	if !ok {
+		utils.RespondError(ctx, http.StatusInternalServerError, "Erro interno: userID inválido")
+		return
+	}
+
 	id := ctx.Param("id")
 	
-	if err := models.DB.First(&user, id).Error; err != nil{
+	if err := models.DB.First(&user, id, userIDVal).Error; err != nil{
 		ctx.JSON(http.StatusBadRequest, gin.H{"erro":err.Error()})
 		return
 	}
@@ -101,9 +115,20 @@ func UpdateUser(ctx *gin.Context){
 
 func DeleteUser(ctx *gin.Context){
 	
+	userID, exists := ctx.Get("userID")
+	if !exists {
+		utils.RespondError(ctx, http.StatusUnauthorized, "Usuário não autenticado")
+		return
+	}
+
+	userIDVal, ok := userID.(uint)
+	if !ok {
+		utils.RespondError(ctx, http.StatusInternalServerError, "Erro interno: userID inválido")
+		return
+	}
 	id := ctx.Param("id")
 
-	if err := models.DB.Delete(&models.Users{},id).Error; err != nil{
+	if err := models.DB.Delete(&models.Users{},id, userIDVal).Error; err != nil{
 		ctx.JSON(http.StatusInternalServerError, gin.H{"erro":"Erro ao deletar"})
 		return
 	}
