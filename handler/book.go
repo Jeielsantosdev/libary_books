@@ -133,3 +133,33 @@ func UpdateBook(ctx *gin.Context) {
 
 	utils.RespondJSON(ctx, http.StatusOK, gin.H{"mensagem": "Livro atualizado com sucesso", "book": book})
 }
+
+func DeleteBook(ctx *gin.Context) {
+	var book models.Book
+
+	// Retrieve userID from context
+	userID, exists := ctx.Get("userID")
+	if !exists {
+		utils.RespondError(ctx, http.StatusUnauthorized, "Usuário não autenticado")
+		return
+	}
+
+	userIDVal, ok := userID.(uint)
+	if !ok {
+		utils.RespondError(ctx, http.StatusInternalServerError, "Erro interno: userID inválido")
+		return
+	}
+	
+	id := ctx.Param("id")
+	if err := models.DB.First(&book, "id = ? AND user_id = ?", id, userIDVal).Error; err != nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "Livro não encontrado"})
+		return
+	}
+	if err := models.DB.Delete(&book).Error; err != nil {
+		log.Printf("Error deleting book: %v", err)
+		utils.RespondError(ctx, http.StatusInternalServerError, "Erro ao deletar livro")
+		return
+	}
+	utils.RespondJSON(ctx, http.StatusOK, gin.H{"mensagem": "Livro deletado com sucesso"})
+
+}

@@ -6,7 +6,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// 
+// TODO : fazer verificacao para o usuario nao logar numa conta de outro usuario que esta logado
+
+
 
 func InitializerRouter(router *gin.Engine){
 	libary := router.Group("api/")
@@ -36,6 +38,7 @@ func InitializerRouter(router *gin.Engine){
 		protected.GET("/book/list", handler.ListBooks)
 		protected.GET("/book/:id", handler.Verbook)
 		protected.PUT("/book/update/:id", handler.UpdateBook)
+		protected.DELETE("/book/delete/:id", handler.DeleteBook)
 	}
 
 	
